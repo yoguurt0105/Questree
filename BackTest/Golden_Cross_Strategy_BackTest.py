@@ -271,7 +271,7 @@ def display_summary(equity_metrics: dict, trade_stats: dict, benchmark: dict) ->
 
 
 # ---------------------------------------------------------------------------
-# Main entry
+# Main method
 # ---------------------------------------------------------------------------
 def main() -> None:
     cfg = StrategyConfig()
