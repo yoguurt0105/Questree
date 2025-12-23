@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
+import yfinance as yfinance
 
 with open('config.yaml', encoding='UTF-8') as f:
     _cfg = yaml.load(f, Loader=yaml.FullLoader)
@@ -219,8 +220,8 @@ def sell(code="005930", qty="1"):
         send_message(f"[매도 실패]{str(res.json())}")
         return False
 
-def get_crawler():
-    url = "https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=0&ie=utf8&query=삼성전자"  # 예시
+def get_crawler(time):
+    url = f"https://search.naver.com/search.naver?ssc=tab.news.all&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90&sm=tab_opt&sort=0&photo=0&field=0&pd=3&ds={time}&de={time}&docid=&related=0&mynews=1&office_type=3&office_section_code=&news_office_checked=&nso=so%3Ar%2Cp%3Afrom20230303to20230303&is_sug_officeid=0&office_category=3&service_area=0"  # 예시
     res = requests.get(url)          # 1) 웹페이지 HTML 받아오기
     html = res.text                  # 2) HTML 전체가 하나의 긴 문자열
 
@@ -237,19 +238,17 @@ def get_crawler():
 
 def classify_title(title: list) -> list:
     """
-    입력: 뉴스 제목 1개
+    입력: 뉴스 제목 list
     출력: -10~10까지의 정수
     """
     prompt = f"""
     너는 금융 뉴스 분류기야.
-    아래 '뉴스 제목 리스트'에서 각각의 뉴스 기사에 대해서 해당 기업의 주가에 미칠 영향을
+    아래 '뉴스 제목 리스트'에서 각각의 뉴스 기사 중에서 앞에 ３개를 제외하고 해당 기업의 주가에 미칠 영향을
     긍정에서 부정의 정도를 -10부터 10까지 판단한 후 이를 평균내어줘
 
     규칙:
     - 긍정일수록 숫자가 10에 수렴한다.
     - 부정일수록 숫자가 -10에 수렴한다.
-    - 이도저도 아닐 때 0
-    
 
     - 출력은 숫자로
     - 설명, 단어, 기호 없이 숫자만 출력하면 좋겠어
